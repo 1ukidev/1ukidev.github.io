@@ -1,3 +1,3 @@
-**Listas de sites:**
+**Lista de sites:**
 
 <https://1ukidev.github.io/socorrooo/>
