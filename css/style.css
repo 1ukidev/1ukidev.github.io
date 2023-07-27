@@ -1,0 +1,29 @@
+body {
+    font-family: 'Special Elite', monospace;
+    font-weight: bold;
+    background-color: #000000;
+    color: #00ff00;
+}
+
+a {
+    color: #00ff00;
+    text-decoration: none;
+}
+
+hr {
+    border: 1px solid #00ff00;
+}
+
+.content {
+    position: absolute;
+    text-align: center;
+    top: 50%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-50%);
+}
+
+@media screen and (max-width: 982px) {
+    .content {
+        width: 85%;
+    }
+}
