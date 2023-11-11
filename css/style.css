@@ -2,16 +2,16 @@ body {
     font-family: 'Special Elite', monospace;
     font-weight: bold;
     background-color: #000000;
-    color: #00ff00;
+    color: #dddddd;
 }
 
 a {
-    color: #00ff00;
+    color: #dddddd;
     text-decoration: none;
 }
 
 hr {
-    border: 1px solid #00ff00;
+    border: 1px solid #dddddd;
 }
 
 .content {
