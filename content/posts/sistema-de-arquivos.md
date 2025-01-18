@@ -1,6 +1,6 @@
 +++
-date = '2025-01-13T08:42:43-03:00'
-draft = true
+date = '2025-01-18T08:42:43-03:00'
+draft = false
 title = 'Criando um sistema de arquivos simples no Linux'
 +++
 
@@ -42,7 +42,7 @@ struct fuse_operations {
 };
 ```
 
-Ótimo! Agora o trabalho será resumido em implementar as funções que eu quero. Antes, escolhi um nome para o sistema de arquivos: leofs. Bem criativo, eu sei. A partir de agora, irei seguir da seguinte forma: colocarei os códigos de três funções que foram implementadas (`getattr`, `readdir` e `read`), junto com comentários explicando o funcionamento.
+Ótimo! Agora o trabalho será resumido em implementar as funções que eu quero. Antes, escolhi um nome para o sistema de arquivos: leofs. Bem criativo, eu sei. A partir de agora, irei seguir da seguinte forma: colocarei os códigos de quatros funções que foram implementadas (`getattr`, `readdir`, `open` e `read`), junto com comentários explicando o funcionamento.
 
 ```c
 /* O getattr será chamado para visualizar os atributos dos arquivos
@@ -88,6 +88,19 @@ static int leofs_readdir(const char *path, void *buffer,
 ```
 
 ```c
+// O open será chamado para a abertura de arquivos.
+static int leofs_open(const char *path, struct fuse_file_info *fi)
+{
+    if (strcmp(path, "/poema") != 0)
+        return -ENOENT; // Retorna erro caso o arquivo não seja "poema".
+
+    // É possível adicionar mais verificações adicionais aqui.
+
+    return 0;
+}
+```
+
+```c
 // O read será chamado para lermos o conteúdo de um arquivo.
 static int leofs_read(const char *path, char *buffer,
                       size_t size, off_t offset,
@@ -97,15 +110,15 @@ static int leofs_read(const char *path, char *buffer,
 
     // Verifica qual arquivo está sendo lido com base no caminho.
     if (strcmp(path, "/poema") == 0)
-        // Define o conteúdo para o arquivo "poema".
+        // Define o conteúdo para o "poema".
         text = "Rosas são vermelhas\nVioletas são azuis\n";
     else
         return -ENOENT; // Retorna erro -ENOENT (arquivo não encontrado).
 
-    // Calcula o tamanho total do conteúdo do arquivo.
+    // Calcula o tamanho total do conteúdo.
     size_t len = strlen(text);
 
-    // Verifica se o deslocamento está além do final do arquivo.
+    // Verifica se o deslocamento está além do final.
     if (offset >= len)
         return 0; // Retorna 0 para indicar que não há mais nada para ler.
 
