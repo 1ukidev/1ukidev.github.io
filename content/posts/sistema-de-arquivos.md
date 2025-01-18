@@ -1,8 +1,9 @@
-+++
-date = '2025-01-18T08:42:43-03:00'
-draft = false
-title = 'Criando um sistema de arquivos simples no Linux'
-+++
+---
+date: "2025-01-18"
+draft: false
+title: "Criando um sistema de arquivos simples no Linux"
+tags: ["linux", "fuse"]
+---
 
 Historicamente, em sistemas operacionais, os sistemas de arquivos sempre andaram junto ao kernel. No Linux, por exemplo, diferentes módulos foram criados para conseguir reconhecer e tratar os mais variados tipos deles. Observando dessa forma, logo imaginaríamos que desenvolver um filesystem do zero seria um processo lento e complicado, exigindo profundos conhecimentos do kernel e de estruturas de dados complexas.
 
