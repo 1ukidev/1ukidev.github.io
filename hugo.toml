@@ -1,0 +1,37 @@
+baseURL = '/'
+languageCode = 'pt-BR'
+title = '1ukidev'
+theme = 'typo'
+
+[taxonomies]
+tag = 'tags'
+
+[params]
+description = 'Um blog interessante'
+
+theme = 'auto'
+colorPalette = 'default'
+hideHeader = false
+
+homeIntroTitle = 'Home'
+homeIntroContent = """
+Apaixonado por tecnologia e sistemas tipo *nix desde pequenininho.
+
+Chave PGP: F0258C27407E9095
+"""
+
+[[params.social]]
+name = 'github'
+url = 'https://github.com/1ukidev'
+
+[[params.social]]
+name = 'linkedin'
+url = 'https://www.linkedin.com/in/leonardomm/'
+
+[[params.menu]]
+name = 'home'
+url = '/'
+
+[[params.menu]]
+name = 'posts'
+url = '/posts'
