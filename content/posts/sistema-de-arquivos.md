@@ -9,7 +9,7 @@ Historicamente, em sistemas operacionais, os sistemas de arquivos sempre andaram
 
 Mas, será mesmo? Com essa dúvida, decidi me adentrar no assunto e tentei criar, da forma mais simples que consegui, o meu próprio sistema de arquivos (spoiler: deu certo, quer dizer, mais ou menos).
 
-Antes de tudo, é interessante entender como, geralmente, nossos arquivos e pastas são tratados no alto nível da coisa. Assim que entramos em um gerenciador de arquivos há um nível interessante de abstração por baixo dos panos.
+Antes de tudo, é interessante entender como geralmente nossos arquivos e pastas são tratados no alto nível da coisa. Assim que entramos em um gerenciador de arquivos há um nível interessante de abstração por baixo dos panos.
 
 Cada sistema de arquivos tem suas peculiaridades na hora de tratar os dados. Alguns usam uma tabela de alocação (FAT), outros, uma árvore B (Btrfs). Concordamos que seria doloroso tentar tratar cada um desses individualmente e, por isso, foi criado o VFS, uma camada que todo filesystem precisa respeitar.
 
@@ -135,15 +135,17 @@ static int leofs_read(const char *path, char *buffer,
 }
 ```
 
-Por fim, criamos nossa `struct fuse_operations` com as funções acima e a `main`:
-
+Por fim, criamos nossa `struct fuse_operations` com as funções acima:
 ```c
 static struct fuse_operations operations = {
     .getattr = leofs_getattr,
     .readdir = leofs_readdir,
     .read    = leofs_read
 };
+```
 
+E a `main`:
+```c
 int main(int argc, char *argv[])
 {
     return fuse_main(argc, argv, &operations, NULL);

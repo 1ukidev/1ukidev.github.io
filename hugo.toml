@@ -20,6 +20,10 @@ Apaixonado por tecnologia e sistemas tipo *nix desde pequenininho.
 Chave PGP: F0258C27407E9095
 """
 
+paginationSize = 100
+listSummaries = false
+listDateFormat = '2 Jan 2006'
+
 [[params.social]]
 name = 'github'
 url = 'https://github.com/1ukidev'
