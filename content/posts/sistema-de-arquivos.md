@@ -140,6 +140,7 @@ Por fim, criamos nossa `struct fuse_operations` com as funções acima:
 static struct fuse_operations operations = {
     .getattr = leofs_getattr,
     .readdir = leofs_readdir,
+    .open    = leofs_open,
     .read    = leofs_read
 };
 ```
