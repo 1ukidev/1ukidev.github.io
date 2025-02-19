@@ -9,7 +9,7 @@ tag = 'tags'
 [params]
 description = 'Um blog interessante'
 
-theme = 'auto'
+theme = 'dark'
 colorPalette = 'default'
 hideHeader = false
 
