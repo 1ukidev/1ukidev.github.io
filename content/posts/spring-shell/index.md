@@ -11,7 +11,7 @@ Suponha que você precise desenvolver uma aplicação CLI, qual as primeiras fer
 ## Primeiros passos
 A configuração inicial não possui muito segredo, podemos utilizar o bom e velho Spring Initializr para criar um projeto. Na lista de dependências, encontramos o Spring Shell, que será o principal objeto de interesse do artigo.
 
-![img](./spring-initializr.png#normal)
+![img](./spring-initializr.png#full)
 
 Depois de baixado, extraído e aberto, precisamos nos certificar de que o shell interativo está habilitado no `application.yml` ou `application.properties`:
 ```yaml
