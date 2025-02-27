@@ -5,7 +5,7 @@ title: '"Inspecionar elemento" salvando vidas'
 tags: ["browser", "javascript"]
 ---
 
-Hoje, enquanto tentava solicitar online um serviço da minha cidade, sem querer, acabei errando um dos dados que eram exigidos. O problema é que o site não permitia que eu corrigisse manualmente, devido ao fato de o campo `input` do HTML estar desabilitado. Isso impossibilitava a continuação de todo o processo, porque a validação sempre falhava.
+Hoje, enquanto tentava solicitar de maneira online um serviço da minha cidade, sem querer, acabei errando um dos dados que eram exigidos. O problema é que o site não permitia que eu corrigisse manualmente, devido ao fato de o campo `input` do HTML estar desabilitado. Isso impossibilitava a continuação de todo o processo, porque a validação sempre falhava.
 
 Nesse caso, uma pessoa normal provavelmente seria obrigada a fazer uma reclamação para tentar resolver o problema, mas eu não poderia parar por aí.
 
