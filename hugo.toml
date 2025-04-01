@@ -39,3 +39,16 @@ url = '/'
 [[params.menu]]
 name = 'posts'
 url = '/posts'
+
+[markup]
+[markup.highlight]
+style = 'gruvbox'
+
+[params.giscus]
+enable = true
+repo = "1ukidev/1ukidev.github.io"
+repoid = "R_kgDOJf8WNg"
+category = "General"
+categoryid = "DIC_kwDOJf8WNs4Cornu"
+mapping = "og:title"
+theme = "dark"
