@@ -1,19 +1,19 @@
 ---
 date: "2025-02-16"
 draft: false
-title: "Desenvolvendo uma aplicação CLI de um jeito diferente"
+title: "Developing a CLI application in a different way"
 tags: ["cli", "spring"]
 autonumber: true
 ---
 
-Suponha que você precise desenvolver uma aplicação CLI, qual as primeiras ferramentas que vem em sua mente? Talvez você pense em shell script ou um Python da vida. Mas e no Spring? Isso, aquele framework Java. Fiquei intrigado ao descobrir que o projeto fornece um recurso apenas para a criação de shells e resolvi testar.
+Suppose you need to develop a CLI application, what are the first tools that come to mind? Perhaps you think of shell script or Python. But what about Spring? Yes, that Java framework. I was intrigued when I discovered that the project provides a resource specifically for creating shells, so I decided to test it.
 
-## Primeiros passos
-A configuração inicial não possui muito segredo, podemos utilizar o bom e velho Spring Initializr para criar um projeto. Na lista de dependências, encontramos o Spring Shell, que será o principal objeto de interesse do artigo.
+## First steps
+The initial setup doesn't have many secrets, we can use the good old Spring Initializr to create a project. In the dependencies list, we find Spring Shell, which will be the main object of interest in this article.
 
 ![img](./spring-initializr.png#full)
 
-Depois de baixado, extraído e aberto, precisamos nos certificar de que o shell interativo está habilitado no `application.yml` ou `application.properties`:
+After downloading, extracting, and opening it, we need to make sure that the interactive shell is enabled in `application.yml` or `application.properties`:
 ```yaml
 spring:
     shell:
@@ -21,7 +21,7 @@ spring:
             enabled: true
 ```
 
-Também pode ser uma boa ideia desativar o banner e o log, pois eles não serão muito úteis:
+It might also be a good idea to disable the banner and logging, as they won't be very useful:
 ```yaml
 spring:
     main:
@@ -32,17 +32,32 @@ logging:
         root: off
 ```
 
-## Executando
-Ao compilar com `gradlew build` e executar o `jar` gerado, entramos diretamente em um shell:
+## Running
+When compiling with `gradlew build` and executing the generated `jar`, we enter directly into a shell:
 
-![img](./shell.png#full)
+```
+$ java -jar build/libs/shell-0.0.1.jar
+shell:>
+```
 
-Temos até alguns comandos por padrão (com direito a realce de sintaxe):
+We even have some default commands:
 
-![img](./comandos.png#full)
+```
+shell:>help
+AVAILABLE COMMANDS
 
-## Adicionando comandos
-Para adicionar comandos também é simples, a reflexão faz a mágica:
+Built-In Commands
+       help: Display help about available commands
+       stacktrace: Display the full stacktrace of the last error.
+       clear: Clear the shell screen.
+       quit, exit: Exit the shell.
+       history: Display or save the history of previously run commands
+       version: Show version info
+       script: Read and execute commands from a file.
+```
+
+## Adding commands
+Adding commands is also simple, reflection does the magic:
 ```java
 package com.lukidev.shell;
 
@@ -51,11 +66,11 @@ import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
 
 @ShellComponent
-public class Comandos {
+public class Commands {
 
-    @ShellMethod("Retorna o quadrado de um número")
-    public int quadrado(
-        @ShellOption(value = "-x", help = "Alvo") int x
+    @ShellMethod("Returns the square of a number")
+    public int square(
+        @ShellOption(value = "-x", help = "Target") int x
     ) {
         return x * x;
     }
@@ -63,18 +78,37 @@ public class Comandos {
 }
 ```
 
-Ao recompilar e testar o comando `quadrado`, ele funciona como o esperado:
+When recompiling and testing the `square` command, it works as expected:
 
-![img](./quadrado.png#full)
+```
+shell:>square 25
+625
+```
 
-Também é gerado automaticamente uma opção de ajuda:
+A help option is also automatically generated:
 
-![img](./quadrado2.png#full)
+```
+shell:>square --help
+NAME
+       square - Returns the square of a number
 
-## Finalizando
-A partir daqui, basta utilizar a criatividade para aproveitar melhor a funcionalidade. É uma solução um tanto simples e funcional. Apesar de eu achar inadequada para programas mais simples, imagino que possa ser mais útil em conjunto com outras aplicações Spring Boot já existentes. De qualquer forma, fica a sugestão para quem não conhecia.
+SYNOPSIS
+       square [-x int] --help 
 
-Código-fonte: https://github.com/1ukidev/shell
+OPTIONS
+       -x int
+       Target
+       [Mandatory]
 
-Referências:
+       --help or -h 
+       help for square
+       [Optional]
+```
+
+## Finishing
+From here, you just need to use your creativity to better take advantage of the functionality. It's a rather simple and functional solution. Although I find it inadequate for simpler programs, I imagine it could be more useful in conjunction with other existing Spring Boot applications. In any case, it's a suggestion for those who didn't know about it.
+
+Source code: https://github.com/1ukidev/shell
+
+References:
 - https://docs.spring.io/spring-shell/reference/getting-started.html

@@ -10,7 +10,7 @@ tag = 'tags'
 description = 'Um blog interessante'
 
 theme = 'dark'
-colorPalette = 'default'
+colorPalette = 'gruvebox'
 hideHeader = false
 
 homeIntroTitle = 'Home'
@@ -37,6 +37,10 @@ name = 'home'
 url = '/'
 
 [[params.menu]]
+name = 'postagens'
+url = '/postagens'
+
+[[params.menu]]
 name = 'posts'
 url = '/posts'
 
@@ -46,9 +50,9 @@ style = 'gruvbox'
 
 [params.giscus]
 enable = true
-repo = "1ukidev/1ukidev.github.io"
-repoid = "R_kgDOJf8WNg"
-category = "General"
-categoryid = "DIC_kwDOJf8WNs4Cornu"
-mapping = "og:title"
-theme = "dark"
+repo = '1ukidev/1ukidev.github.io'
+repoid = 'R_kgDOJf8WNg'
+category = 'General'
+categoryid = 'DIC_kwDOJf8WNs4Cornu'
+mapping = 'og:title'
+theme = 'auto'
