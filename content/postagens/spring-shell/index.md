@@ -13,23 +13,23 @@ A configuração inicial não possui muito segredo, podemos utilizar o bom e vel
 
 ![img](./spring-initializr.png#full)
 
-Depois de baixado, extraído e aberto, precisamos nos certificar de que o shell interativo está habilitado no `application.yml` ou `application.properties`:
+Depois de baixado, extraído e aberto, precisamos nos certificar de que o shell interativo está habilitado no `application.yaml` ou `application.properties`:
 ```yaml
 spring:
-    shell:
-        interactive:
-            enabled: true
+  shell:
+    interactive:
+      enabled: true
 ```
 
 Também pode ser uma boa ideia desativar o banner e o log, pois eles não serão muito úteis:
 ```yaml
 spring:
-    main:
-        banner-mode: off
+  main:
+    banner-mode: off
 
 logging:
-    level:
-        root: off
+  level:
+    root: off
 ```
 
 ## Executando
