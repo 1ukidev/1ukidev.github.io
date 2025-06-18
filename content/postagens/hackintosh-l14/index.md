@@ -7,7 +7,7 @@ tags: ["hackintosh", "thinkpad"]
 
 ![img](./desktop.png)
 
-É lei todo notebook que eu compro tentar fazer um Hackintosh, no ThinkPad L14 não poderia ter sido diferente. Felizmente, até que muitas coisas estão funcionando no macOS Sequioa.
+É lei todo notebook que eu compro tentar fazer um Hackintosh, no ThinkPad L14 não poderia ter sido diferente. Felizmente, até que muitas coisas estão funcionando no macOS Sequoia.
 
 Os hardwares dos ThinkPads variam absurdamente dependendo do modelo, por isso irei reforçar que o meu é um ThinkPad L14 Gen 3 com as seguintes especificações:
 - CPU: AMD Ryzen 5 PRO 5675U

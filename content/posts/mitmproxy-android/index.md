@@ -5,7 +5,7 @@ title: "mitmproxy, but on Android"
 tags: ["mitmproxy", "android"]
 ---
 
-Mitmproxy has always been extremely helpful when I needed an HTTPS proxy that would allow me to monitor network traffic with more freedom. Last week, while trying to monitor an application on Android, I discovered an interesting open-source tool that made the entire process possible directly on the device, with very little configuration: [PCAPdroid](https://github.com/emanuele-f/PCAPdroid). Monitoring and decrypting network traffic with just a few clicks was truly satisfying.
+mitmproxy has always been extremely helpful when I needed an HTTPS proxy that would allow me to monitor network traffic with more freedom. Last week, while trying to monitor an application on Android, I discovered an interesting open-source tool that made the entire process possible directly on the device, with very little configuration: [PCAPdroid](https://github.com/emanuele-f/PCAPdroid). Monitoring and decrypting network traffic with just a few clicks was truly satisfying.
 
 ## Installation
 It can be easily installed through the Play Store, F-Droid, or the APK from its GitHub page. The choice is yours.
