@@ -31,7 +31,7 @@ Example:
   :group 'dap-mode)
 
 (defun dap-swf-start-adapter-command (port)
-  (format "java -jar %s/swf-debug-adapter.jar --server=%d" dap-swf-adapter-jar port))
+  (format "java -jar %s --server=%d" dap-swf-adapter-jar port))
 
 (defun dap-as3--populate-start-args (conf)
   (let ((port (dap--find-available-port)))
