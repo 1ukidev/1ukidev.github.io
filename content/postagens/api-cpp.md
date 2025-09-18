@@ -7,7 +7,7 @@ autonumber: true
 toc: true
 ---
 
-Nesses últimos meses eu fiquei de tirar um pouco do meu tempo para focar em um tipo de projeto não tão comum, uma API em C++, tanto para aprender mais sobre a linguagem e seus recursos mais modernos, quanto para ver o quão bom o resultado final ficaria. Assim surgiu o `efe` **(extremely fast ERP)**. Desenvolver uma do zero utilizando bibliotecas de mais baixo nível seria terrivelmente demorado, e eu não queria reinventar a roda, mas criar uma API com base no que há de melhor no ecossistema atualmente. Esse artigo é principalmente para quem tem mais conhecimento em C++ e tem curiosidade sobre frameworks web na linguagem, além de não representar completamente o nicho.
+Nesses últimos meses eu fiquei de tirar um pouco do meu tempo para focar em um tipo de projeto não tão comum, uma API em C++, tanto para aprender mais sobre a linguagem e seus recursos mais modernos, quanto para ver o quão bom o resultado final ficaria. Assim surgiu o **efe**. Desenvolver uma do zero utilizando bibliotecas de mais baixo nível seria terrivelmente demorado, e eu não queria reinventar a roda, mas criar uma API com base no que há de melhor no ecossistema atualmente. Esse artigo é principalmente para quem tem mais conhecimento em C++ e tem curiosidade sobre frameworks web na linguagem, além de não representar completamente o nicho.
 
 ## Drogon
 No mundo do C++, um framework tem chamado minha atenção e é dele que vou falar agora. Trata-se do [Drogon](https://github.com/drogonframework/drogon), um framework web construído com base no C++ moderno, e isso inclui funcionalidades que se beneficiam do C++17 e C++20. Abrindo o capô, temos o [TRANTOR](https://github.com/an-tao/trantor), uma biblioteca que fornece um [loop de eventos](https://pt.wikipedia.org/wiki/La%C3%A7o_de_eventos) multithread, com I/O não-bloqueante e de alta performance, para E/S de rede ([e sério, é bem rápido](https://www.techempower.com/benchmarks/#section=data-r21)).
@@ -68,7 +68,7 @@ std::optional<UsuarioEntity> findByLogin(const std::string& login)
         if (result.size() == 0)
             return std::nullopt;
 
-        UsuarioEntity usuario;
+        UsuarioEntity usuario{};
         usuario.fromRowSet(result[0]);
         return usuario;
     } catch (const orm::DrogonDbException& e) {
@@ -89,7 +89,7 @@ std::optional<UsuarioEntity> findByLogin(const std::string& login)
         if (res.size() == 0)
             return std::nullopt;
 
-        UsuarioEntity usuario;
+        UsuarioEntity usuario{};
         usuario.fromRowSet(res[0]);
         return usuario;
     } catch (const orm::DrogonDbException& e) {
@@ -110,7 +110,7 @@ Task<std::optional<UsuarioEntity>> findByLogin(const std::string& login)
         if (result.size() == 0)
             co_return std::nullopt;
 
-        UsuarioEntity usuario;
+        UsuarioEntity usuario{};
         usuario.fromRowSet(result[0]);
         co_return usuario;
     } catch (const orm::DrogonDbException& e) {
@@ -142,13 +142,13 @@ Nesse caso, a ideia foi criar uma classe que todas as outras entidades da API te
 ```c++
 // Entity.hpp
 
-#include "JSON.hpp"
-
 #include <cstdint>
 #include <drogon/orm/Row.h>
 #include <json/value.h>
 #include <string>
 #include <unordered_map>
+
+#include "JSON.hpp"
 
 class Entity
 {
@@ -162,7 +162,7 @@ public:
     virtual std::string getTable() const = 0;
 
     // Retorna um mapa com os nomes das colunas e seus respectivos valores.
-    virtual const std::unordered_map<std::string, std::string>& getColumns() const = 0;
+    virtual const std::unordered_map<std::string, std::string> getColumns() const = 0;
 
     // Preenche a entidade com os valores do resultado de uma consulta.
     virtual void fromRowSet(const drogon::orm::Row& row) = 0;
@@ -185,12 +185,12 @@ Usando mais uma vez o usuário como exemplo, uma implementação simples se torn
 ```c++
 // UsuarioEntity.hpp
 
-#include "Entity.hpp"
-#include "JSON.hpp"
-
 #include <drogon/orm/Row.h>
 #include <string>
 #include <unordered_map>
+
+#include "Entity.hpp"
+#include "JSON.hpp"
 
 class UsuarioEntity final : public Entity
 {
@@ -204,7 +204,7 @@ public:
     std::string getClassName() const override { return "UsuarioEntity"; }
     std::string getTable() const override { return "usuario"; }
 
-    const std::unordered_map<std::string, std::string>& getColumns() const override;
+    const std::unordered_map<std::string, std::string> getColumns() const override;
     void fromRowSet(const drogon::orm::Row& result) override;
 
     std::string toString() const override;
@@ -213,17 +213,11 @@ public:
     std::string nome;
     std::string login;
     std::string senha;
-
-private:
-    mutable std::unordered_map<std::string, std::string> columnsCache;
 };
 ```
 
 ```c++
 // UsuarioEntity.cpp
-
-#include "UsuarioEntity.hpp"
-#include "JSON.hpp"
 
 #include <cstdint>
 #include <drogon/orm/Field.h>
@@ -231,14 +225,16 @@ private:
 #include <string>
 #include <unordered_map>
 
-const std::unordered_map<std::string, std::string>& UsuarioEntity::getColumns() const
+#include "UsuarioEntity.hpp"
+#include "JSON.hpp"
+
+const std::unordered_map<std::string, std::string> UsuarioEntity::getColumns() const
 {
-    columnsCache = {
+    return {
         {"nome", nome},
         {"login", login},
         {"senha", senha}
     };
-    return columnsCache;
 }
 
 void UsuarioEntity::fromRowSet(const drogon::orm::Row& row)
@@ -267,7 +263,7 @@ std::string UsuarioEntity::toString() const
 
 JSON UsuarioEntity::toJSON() const
 {
-    JSON json;
+    JSON json{};
     json["id"] = id;
     json["nome"] = nome;
     json["login"] = login;
@@ -282,8 +278,6 @@ Com essa abstração pronta, agora temos uma base para tentar arranjar uma forma
 
 #pragma once
 
-#include "Entity.hpp"
-
 #include <cstdint>
 #include <drogon/HttpAppFramework.h>
 #include <drogon/orm/DbClient.h>
@@ -293,8 +287,11 @@ Com essa abstração pronta, agora temos uma base para tentar arranjar uma forma
 #include <string>
 #include <trantor/utils/Logger.h>
 #include <type_traits>
+#include <unordered_map>
 #include <utility>
 #include <vector>
+
+#include "Entity.hpp"
 
 /* Podemos usar os concepts do C++20 para garantir
    que apenas nossas entidades possam herdar dessa classe. */
@@ -345,7 +342,7 @@ public:
 
     virtual drogon::Task<std::optional<T>> findByIdCoro(std::int64_t id)
     {
-        T entity;
+        T entity{};
         std::string sql = "SELECT * FROM " + entity.getTable() + " WHERE id = $1;";
 
         try {
@@ -382,7 +379,7 @@ Como podemos reparar, as queries de `saveCoro` e `updateCoro` estão sendo monta
 
 std::pair<std::string, std::vector<std::string>> buildInsertQuery(const T& entity)
 {
-    const auto& columns = entity.getColumns();
+    std::unordered_map<std::string, std::string> columns = entity.getColumns();
 
     std::string sql = "INSERT INTO " + entity.getTable() + " (";
 
@@ -401,7 +398,7 @@ std::pair<std::string, std::vector<std::string>> buildInsertQuery(const T& entit
         first = false;
     }
 
-    std::vector<std::string> values;
+    std::vector<std::string> values{};
     for (const auto& [_, value] : columns)
         values.push_back(value);
 
@@ -413,11 +410,11 @@ std::pair<std::string, std::vector<std::string>> buildInsertQuery(const T& entit
 
 std::pair<std::string, std::vector<std::string>> buildUpdateQuery(const T& entity)
 {
-    const auto& columns = entity.getColumns();
+    std::unordered_map<std::string, std::string> columns = entity.getColumns();
 
     std::string sql = "UPDATE " + entity.getTable() + " SET ";
 
-    std::vector<std::string> values;
+    std::vector<std::string> values{};
     size_t index = 1;
     for (const auto& [column, value] : columns) {
         if (index > 1) sql += ", ";
@@ -437,11 +434,11 @@ Pronto, agora vamos tentar implementar essa classe.
 ```c++
 #pragma once
 
-#include "DAO.hpp"
-#include "UsuarioEntity.hpp"
-
 #include <drogon/plugins/Plugin.h>
 #include <json/value.h>
+
+#include "DAO.hpp"
+#include "UsuarioEntity.hpp"
 
 class UsuarioDAO final : public DAO<UsuarioEntity>, public drogon::Plugin<UsuarioDAO>
 {
@@ -510,14 +507,14 @@ private:
 ```c++
 // JSON.cpp
 
-#include "JSON.hpp"
-
 #include <json/writer.h>
 #include <string>
 
+#include "JSON.hpp"
+
 std::string JSON::toString() const
 {
-    Json::StreamWriterBuilder builder;
+    Json::StreamWriterBuilder builder{};
     return Json::writeString(builder, value);
 }
 
@@ -571,16 +568,16 @@ namespace efe::controllers
 ```c++
 // UsuarioController.cpp
 
-#include "JSON.hpp"
-#include "UsuarioController.hpp"
-#include "UsuarioDAO.hpp"
-#include "UsuarioEntity.hpp"
-
 #include <drogon/HttpRequest.h>
 #include <drogon/HttpResponse.h>
 #include <drogon/HttpTypes.h>
 #include <drogon/utils/coroutine.h>
 #include <string>
+
+#include "JSON.hpp"
+#include "UsuarioController.hpp"
+#include "UsuarioDAO.hpp"
+#include "UsuarioEntity.hpp"
 
 namespace efe::controllers
 {
@@ -610,7 +607,7 @@ namespace efe::controllers
             co_return;
         }
 
-        UsuarioEntity entity(nome, login, senha);
+        UsuarioEntity entity{nome, login, senha};
         bool ok = co_await dao->saveCoro(entity);
 
         resp->setStatusCode(ok ? k201Created : k500InternalServerError);

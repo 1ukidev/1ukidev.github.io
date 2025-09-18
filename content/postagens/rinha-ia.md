@@ -24,6 +24,6 @@ Resposta esperada: Sergipe.
 | DeepSeek-V3.1        | sem raciocínio | Respondeu Sergipe e Espiríto Santo.                                            | Rapidamente            |    ❌    |
 | DeepSeek-V3.1        | com raciocínio | Pensou e respondeu corretamente.                                               | 1 minuto e 10 segundos |    ✅    |
 
-Ganhador: GPT-5 mini com raciocínio.
+Vencedor: GPT-5 mini com raciocínio.
 
 Conclusão: é interessante como apenas os modelos com raciocínio (com exceção do Gemini 2.5 Pro) conseguiram chegar na resposta correta. A geração convencional que tenta prever a resposta correta continua a falhar feio nessa pergunta.
