@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="pt-BR" lang="pt-BR">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <title>λ θ β ζ - Criando um sistema de arquivos simples no Linux</title>
+        <link rel="stylesheet" type="text/css" href="../css/default.css" />
+        <link rel="icon" type="image/png" href="../images/favicon.png" />
+    </head>
+    <body>
+        <div id="header">
+            <div id="logo">
+                <a href="../">λ θ β ζ</a>
+            </div>
+            <div id="navigation">
+                <a href="../contact.html">Contato</a>
+                <a href="../archive.html">Arquivo</a>
+            </div>
+        </div>
+
+        <div id="content">
+            
+                <h1>Criando um sistema de arquivos simples no Linux</h1>
+            
+
+            <div class="info">
+    Postado em 18/01/2025
+    
+</div>
+
+<p>Historicamente, em sistemas operacionais, os sistemas de arquivos sempre andaram junto ao kernel. No Linux, por exemplo, diferentes módulos foram criados para conseguir reconhecer e tratar os mais variados tipos deles. Observando dessa forma, logo imaginaríamos que desenvolver um filesystem do zero seria um processo lento e complicado, exigindo profundos conhecimentos do kernel e de estruturas de dados complexas.</p>
+<p>Mas, será mesmo? Com essa dúvida, decidi me adentrar no assunto e tentei criar, da forma mais simples que consegui, o meu próprio sistema de arquivos (spoiler: deu certo, quer dizer, mais ou menos).</p>
+<p>Antes de tudo, é interessante entender como geralmente nossos arquivos e pastas são tratados no alto nível da coisa. Assim que entramos em um gerenciador de arquivos há um nível interessante de abstração por baixo dos panos.</p>
+<p>Cada sistema de arquivos tem suas peculiaridades na hora de tratar os dados. Alguns usam uma tabela de alocação (FAT), outros, uma árvore B (Btrfs). Concordamos que seria doloroso tentar tratar cada um desses individualmente e, por isso, foi criado o VFS, uma camada que todo filesystem precisa respeitar.</p>
+<p>Ao realizar a seguinte chamada de sistema no Linux:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> fd <span class="op">=</span> open<span class="op">(</span><span class="st">&quot;arquivo.txt&quot;</span><span class="op">,</span> O_RDONLY<span class="op">);</span></span></code></pre></div>
+<p>O VFS do kernel está basicamente cuidando de chamar o equivalente ao <code>open()</code> no sistema de arquivos subjacente.</p>
+<p>Alguns outros exemplos de chamadas padronizadas pelo VFS: <code>open()</code>, <code>read()</code>, <code>write()</code>, <code>mkdir()</code>.</p>
+<p>Com isso em mente, deduzi que, para continuar com a minha ideia, eu apenas precisava implementar essas mesmas chamadas a meu gosto, correto? E é bem por aí mesmo.</p>
+<p>Neste ponto, eu poderia seguir entre dois caminhos diferentes: implementar a nível de kernel como um módulo (mais difícil) ou implementar a nível de usuário usando o FUSE (mais fácil). Por ora, o FUSE se mostrou um ótimo começo.</p>
+<p>O <a href="https://github.com/libfuse/libfuse">FUSE</a> é uma interface que possibilita implementarmos qualquer sistema de arquivos no userspace. Isso significa: sem a necessidade de usarmos root ou de instalar módulos ao kernel. De início, tudo que é necessário é termos o próprio FUSE instalado. Definitivamente, é um projeto bem legal.</p>
+<p>O projeto é desenvolvido inteiramente em C e, consequentemente, a biblioteca fornecida também é em C (<code>&lt;fuse.h&gt;</code>). Até existem bindings para outras linguagens, como a de <a href="https://github.com/libfuse/python-fuse">Python</a>, mas decidi permanecer com o C, que irá fornecer todo o poder necessário para a brincadeira.</p>
+<p>Ao começar a desenvolver, o que mais vai interessar será uma única <code>struct</code>, sim, apenas uma: a <code>fuse_operations</code>, que é composta exatamente de ponteiros para as funções que o VFS especifica.</p>
+<p>Um preview do <code>fuse_operations</code>:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> fuse_operations <span class="op">{</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> <span class="op">(*</span>getattr<span class="op">)</span> <span class="op">(</span><span class="dt">const</span> <span class="dt">char</span> <span class="op">*,</span> <span class="kw">struct</span> stat <span class="op">*,</span> <span class="kw">struct</span> fuse_file_info <span class="op">*</span>fi<span class="op">);</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> <span class="op">(*</span>readlink<span class="op">)</span> <span class="op">(</span><span class="dt">const</span> <span class="dt">char</span> <span class="op">*,</span> <span class="dt">char</span> <span class="op">*,</span> <span class="dt">size_t</span><span class="op">);</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> <span class="op">(*</span>mknod<span class="op">)</span> <span class="op">(</span><span class="dt">const</span> <span class="dt">char</span> <span class="op">*,</span> mode_t<span class="op">,</span> dev_t<span class="op">);</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> <span class="op">(*</span>mkdir<span class="op">)</span> <span class="op">(</span><span class="dt">const</span> <span class="dt">char</span> <span class="op">*,</span> mode_t<span class="op">);</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> <span class="op">(*</span>unlink<span class="op">)</span> <span class="op">(</span><span class="dt">const</span> <span class="dt">char</span> <span class="op">*);</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">...</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<p>Ótimo! Agora o trabalho será resumido em implementar as funções que eu quero. Antes, escolhi um nome para o sistema de arquivos: leofs. Bem criativo, eu sei. A partir de agora, irei seguir da seguinte forma: colocarei os códigos de quatros funções que foram implementadas (<code>getattr</code>, <code>readdir</code>, <code>open</code> e <code>read</code>), junto com comentários explicando o funcionamento.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">/* O getattr será chamado para visualizar os atributos dos arquivos</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co">   e diretórios. Sim, aqueles mesmos que você vê no &quot;ls -l&quot;. */</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">int</span> leofs_getattr<span class="op">(</span><span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span>path<span class="op">,</span> <span class="kw">struct</span> stat <span class="op">*</span>st<span class="op">)</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    st<span class="op">-&gt;</span>st_uid <span class="op">=</span> getuid<span class="op">();</span> <span class="co">// Identificador do usuário que montou o sistema de arquivos.</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    st<span class="op">-&gt;</span>st_gid <span class="op">=</span> getgid<span class="op">();</span> <span class="co">// Identificador do grupo do usuário que montou.</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    st<span class="op">-&gt;</span>st_atime <span class="op">=</span> time<span class="op">(</span>NULL<span class="op">);</span> <span class="co">// Último acesso, no caso, o horário atual.</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    st<span class="op">-&gt;</span>st_mtime <span class="op">=</span> time<span class="op">(</span>NULL<span class="op">);</span> <span class="co">// Última modificação, também o horário atual.</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>strcmp<span class="op">(</span>path<span class="op">,</span> <span class="st">&quot;/&quot;</span><span class="op">)</span> <span class="op">==</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>        st<span class="op">-&gt;</span>st_mode <span class="op">=</span> S_IFDIR <span class="op">|</span> <span class="bn">0755</span><span class="op">;</span> <span class="co">// Define como diretório com permissões 0755.</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>        st<span class="op">-&gt;</span>st_nlink <span class="op">=</span> <span class="dv">2</span><span class="op">;</span> <span class="co">// Número de links: 2 (padrão para diretórios).</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>        st<span class="op">-&gt;</span>st_mode <span class="op">=</span> S_IFREG <span class="op">|</span> <span class="bn">0644</span><span class="op">;</span> <span class="co">// Define como arquivo regular com permissões 0644.</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>        st<span class="op">-&gt;</span>st_nlink <span class="op">=</span> <span class="dv">1</span><span class="op">;</span> <span class="co">// Um único link.</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>        st<span class="op">-&gt;</span>st_size <span class="op">=</span> <span class="dv">1024</span><span class="op">;</span> <span class="co">// Define o tamanho como 1024 bytes.</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">// O readdir será chamado para vermos o que tem em um diretório.</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">int</span> leofs_readdir<span class="op">(</span><span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span>path<span class="op">,</span> <span class="dt">void</span> <span class="op">*</span>buffer<span class="op">,</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>                         fuse_fill_dir_t filler<span class="op">,</span> off_t offset<span class="op">,</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>                         <span class="kw">struct</span> fuse_file_info <span class="op">*</span>fi<span class="op">)</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Adiciona os diretórios padrão (. e ..)</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    filler<span class="op">(</span>buffer<span class="op">,</span> <span class="st">&quot;.&quot;</span><span class="op">,</span> NULL<span class="op">,</span> <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    filler<span class="op">(</span>buffer<span class="op">,</span> <span class="st">&quot;..&quot;</span><span class="op">,</span> NULL<span class="op">,</span> <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">/* Adiciona o conteúdo do diretório raiz.</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="co">       Coloquei um arquivo chamado poema. */</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>strcmp<span class="op">(</span>path<span class="op">,</span> <span class="st">&quot;/&quot;</span><span class="op">)</span> <span class="op">==</span> <span class="dv">0</span><span class="op">)</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>        filler<span class="op">(</span>buffer<span class="op">,</span> <span class="st">&quot;poema&quot;</span><span class="op">,</span> NULL<span class="op">,</span> <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">// O open será chamado para a abertura de arquivos.</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">int</span> leofs_open<span class="op">(</span><span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span>path<span class="op">,</span> <span class="kw">struct</span> fuse_file_info <span class="op">*</span>fi<span class="op">)</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>strcmp<span class="op">(</span>path<span class="op">,</span> <span class="st">&quot;/poema&quot;</span><span class="op">)</span> <span class="op">!=</span> <span class="dv">0</span><span class="op">)</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">-</span>ENOENT<span class="op">;</span> <span class="co">// Retorna erro caso o arquivo não seja &quot;poema&quot;.</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">// É possível adicionar mais verificações adicionais aqui.</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">// O read será chamado para lermos o conteúdo de um arquivo.</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">int</span> leofs_read<span class="op">(</span><span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span>path<span class="op">,</span> <span class="dt">char</span> <span class="op">*</span>buffer<span class="op">,</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>                      <span class="dt">size_t</span> size<span class="op">,</span> off_t offset<span class="op">,</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>                      <span class="kw">struct</span> fuse_file_info <span class="op">*</span>fi<span class="op">)</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span> <span class="op">*</span>text <span class="op">=</span> NULL<span class="op">;</span> <span class="co">// Ponteiro para armazenar o conteúdo do arquivo.</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Verifica qual arquivo está sendo lido com base no caminho.</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>strcmp<span class="op">(</span>path<span class="op">,</span> <span class="st">&quot;/poema&quot;</span><span class="op">)</span> <span class="op">==</span> <span class="dv">0</span><span class="op">)</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>        <span class="co">// Define o conteúdo para o &quot;poema&quot;.</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>        text <span class="op">=</span> <span class="st">&quot;Rosas são vermelhas</span><span class="sc">\n</span><span class="st">Violetas são azuis</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">;</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">-</span>ENOENT<span class="op">;</span> <span class="co">// Retorna erro -ENOENT (arquivo não encontrado).</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Calcula o tamanho total do conteúdo.</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    <span class="dt">size_t</span> len <span class="op">=</span> strlen<span class="op">(</span>text<span class="op">);</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Verifica se o deslocamento está além do final.</span></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>offset <span class="op">&gt;=</span> len<span class="op">)</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span> <span class="co">// Retorna 0 para indicar que não há mais nada para ler.</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Ajusta o tamanho solicitado para não ultrapassar o final do arquivo.</span></span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>offset <span class="op">+</span> size <span class="op">&gt;</span> len<span class="op">)</span></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>        size <span class="op">=</span> len <span class="op">-</span> offset<span class="op">;</span></span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Copia o conteúdo do texto para o buffer, começando no deslocamento especificado.</span></span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>    memcpy<span class="op">(</span>buffer<span class="op">,</span> text <span class="op">+</span> offset<span class="op">,</span> size<span class="op">);</span></span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Retorna o número de bytes efetivamente lidos.</span></span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> size<span class="op">;</span></span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Por fim, criamos nossa <code>struct fuse_operations</code> com as funções acima:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="kw">struct</span> fuse_operations operations <span class="op">=</span> <span class="op">{</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>getattr <span class="op">=</span> leofs_getattr<span class="op">,</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>readdir <span class="op">=</span> leofs_readdir<span class="op">,</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>open    <span class="op">=</span> leofs_open<span class="op">,</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>read    <span class="op">=</span> leofs_read</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<p>E a <code>main</code>:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">int</span> argc<span class="op">,</span> <span class="dt">char</span> <span class="op">*</span>argv<span class="op">[])</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> fuse_main<span class="op">(</span>argc<span class="op">,</span> argv<span class="op">,</span> <span class="op">&amp;</span>operations<span class="op">,</span> NULL<span class="op">);</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>E pronto! Agora temos um sistema de arquivos com poucas linhas de código. Agora é só compilar e testar!</p>
+<p>Para montar, basta executar no shell:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> ./leofs <span class="op">&lt;</span>ponto_de_montagem<span class="op">&gt;</span></span></code></pre></div>
+<p>Ao entrar na pasta e rodar <code>ls</code>, temos a seguinte saída:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">poema</span></span></code></pre></div>
+<p>Nosso arquivo <code>poema</code>, que adicionamos na função <code>leofs_readdir</code>, está aqui.</p>
+<p>E ao rodar <code>cat poema</code>:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">Rosas</span> são vermelhas</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="ex">Violetas</span> são azuis</span></code></pre></div>
+<p>Temos exatamente o texto que adicionamos no <code>leofs_read</code> para o <code>poema</code>.</p>
+<p>Caso a gente tente executar uma operação de uma função que não foi implementada, o VFS irá retornar um erro. Exemplo:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> rm poema</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="ex">rm:</span> não foi possível remover <span class="st">'poema'</span>: Função não implementada</span></code></pre></div>
+<p>Obviamente, o leofs não tem nenhuma utilidade na prática e é muito simples, mas, pessoalmente, foi útil para me aprofundar mais no assunto. Durante o artigo, omiti vários tópicos que poderiam ter sido abordados.</p>
+<p>Espero que talvez sirva de começo para outras pessoas que nunca tiveram contato com o assunto. Veja mais exemplos de sistemas de arquivos criados com o FUSE em <a href="https://github.com/koding/awesome-fuse-fs">awesome-fuse-fs</a>.</p>
+<p>Código-fonte: https://github.com/1ukidev/leofs</p>
+<p>Referências:
+- https://libfuse.github.io/doxygen/index.html
+- https://www.maastaar.net/fuse/linux/filesystem/c/2016/05/21/writing-a-simple-filesystem-using-fuse</p>
+
+        </div>
+        <div id="footer">
+            Site gerado com
+            <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+            e
+            <a href="https://www.haskell.org">Haskell</a>
+            <br>
+            <a href="https://github.com/1ukidev/1ukidev.github.io">Código-fonte</a>
+        </div>
+    </body>
+</html>
