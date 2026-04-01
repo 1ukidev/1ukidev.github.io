@@ -1,0 +1,34 @@
+cabal-version:       2.2
+
+name:                blog
+version:             0.1.0.0
+-- synopsis:
+-- description:
+homepage:            https://github.com/1ukidev/1ukidev.github.io
+license:             MIT
+license-file:        LICENSE
+author:              Leonardo Moreira
+maintainer:          leo.monteiro06@live.com
+copyright:           2026 Leonardo Moreira
+category:            Web
+build-type:          Simple
+extra-source-files:  README.md
+                     CHANGELOG.md
+
+executable blog
+  main-is:             site.hs
+  default-language:    Haskell2010
+  build-depends:       base >= 4.7 && < 5,
+                       hakyll,
+                       time
+  ghc-options:         -O2
+                       -Wall
+                       -Wcompat
+                       -Widentities
+                       -Wincomplete-record-updates
+                       -Wincomplete-uni-patterns
+                       -Wmissing-export-lists
+                       -Wmissing-home-modules
+                       -Wpartial-fields
+                       -Wredundant-constraints
+                       -threaded
