@@ -639,4 +639,4 @@ Salvo com sucesso
 ## Considerações finais
 Infelizmente, programar a API dessa forma vai ter como efeito colateral muito código boilerplate e pode ficar constantemente vulnerável a bugs e falhas de segurança, o que pode se tornar um grande risco para projetos grandes. É interessante que você faça as coisas desse jeito somente se você realmente souber o que está fazendo e precisa de desempenho ao máximo. E ainda assim, é provável que não seja a melhor escolha, já que frameworks como o ASP.NET Core fornecem um bom nível de produtividade com um nível de desempenho consideravelmente alto.
 
-Código-fonte: https://github.com/1ukidev/efe
+Código-fonte: [https://github.com/1ukidev/efe](https://github.com/1ukidev/efe)

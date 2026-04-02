@@ -182,8 +182,10 @@ Obviamente, o leofs não tem nenhuma utilidade na prática e é muito simples, m
 
 Espero que talvez sirva de começo para outras pessoas que nunca tiveram contato com o assunto. Veja mais exemplos de sistemas de arquivos criados com o FUSE em [awesome-fuse-fs](https://github.com/koding/awesome-fuse-fs).
 
-Código-fonte: https://github.com/1ukidev/leofs
+Código-fonte: [https://github.com/1ukidev/leofs](https://github.com/1ukidev/leofs)
 
 Referências:
-- https://libfuse.github.io/doxygen/index.html
-- https://www.maastaar.net/fuse/linux/filesystem/c/2016/05/21/writing-a-simple-filesystem-using-fuse
+
+- [https://libfuse.github.io/doxygen/index.html](https://libfuse.github.io/doxygen/index.html)
+
+- [https://www.maastaar.net/fuse/linux/filesystem/c/2016/05/21/writing-a-simple-filesystem-using-fuse](https://www.maastaar.net/fuse/linux/filesystem/c/2016/05/21/writing-a-simple-filesystem-using-fuse)

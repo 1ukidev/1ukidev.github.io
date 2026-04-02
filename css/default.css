@@ -1,19 +1,95 @@
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
 body {
     background-color: #282828;
     color: #ebdbb2;
     font-family: sans-serif;
     font-size: 16px;
-    margin: 0px auto 0px auto;
-    width: 600px;
+    line-height: 1.6;
+    margin: 0 auto;
+    max-width: 680px;
+    padding: 0 16px;
+    width: 100%;
 }
 
 code {
     font-family: monospace;
+    font-size: 0.85em;
+    background-color: #32302f;
+    border-radius: 4px;
+    padding: 0.1rem 0.3rem;
+}
+
+pre {
+    background-color: #32302f;
+    border-radius: 8px;
+    padding: 1rem;
+    overflow-x: auto;
+}
+
+pre code {
+    background: transparent;
+    padding: 0;
+}
+
+div.sourceCode {
+    margin: 1.2rem 0;
+}
+
+div.sourceCode pre {
+    margin: 0;
+}
+
+.sourceCode .kw,
+.sourceCode .cf {
+    color: #fb4934;
+}
+
+.sourceCode .dt,
+.sourceCode .bu,
+.sourceCode .at {
+    color: #fabd2f;
+}
+
+.sourceCode .st,
+.sourceCode .im {
+    color: #b8bb26;
+}
+
+.sourceCode .co {
+    color: #928374;
+    font-style: italic;
+}
+
+.sourceCode .pp {
+    color: #83a598;
+}
+
+.sourceCode .op,
+.sourceCode .va {
+    color: #ebdbb2;
+}
+
+img,
+video,
+iframe,
+table {
+    max-width: 100%;
+}
+
+img,
+video {
+    height: auto;
 }
 
 a {
     color: #83a598;
     text-decoration: none;
+    overflow-wrap: anywhere;
 }
 
 a:hover {
@@ -26,20 +102,30 @@ a:visited {
 }
 
 div#header {
+    align-items: baseline;
     border-bottom: 2px solid #928374;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    justify-content: space-between;
     margin-bottom: 30px;
     padding: 12px 0px 12px 0px;
 }
 
 div#logo a {
     color: #b8bb26;
-    float: left;
+    display: inline-block;
     font-size: 18px;
     font-weight: bold;
     text-decoration: none;
 }
 
 div#header #navigation {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-left: auto;
     text-align: right;
 }
 
@@ -47,7 +133,6 @@ div#header #navigation a {
     color: #83a598;
     font-size: 18px;
     font-weight: bold;
-    margin-left: 12px;
     text-decoration: none;
     text-transform: uppercase;
 }
@@ -79,4 +164,21 @@ div.info {
     color: #a89984;
     font-size: 14px;
     font-style: italic;
+}
+
+@media (max-width: 640px) {
+    body {
+        padding: 0 12px;
+    }
+
+    div#header {
+        align-items: flex-start;
+    }
+
+    div#header #navigation {
+        justify-content: flex-start;
+        margin-left: 0;
+        text-align: left;
+        width: 100%;
+    }
 }
