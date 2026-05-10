@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="pt-BR" lang="pt-BR">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>λ θ β ζ - ProtonVPN no Qubes OS</title>
+        <link rel="stylesheet" type="text/css" href="../css/default.css" />
+        <link rel="icon" type="image/png" href="../images/favicon.png" />
+    </head>
+    <body>
+        <div id="header">
+            <div id="logo">
+                <a href="../">λ θ β ζ</a>
+            </div>
+            <div id="navigation">
+                <a href="../contact.html">Contato</a>
+                <a href="../archive.html">Arquivo</a>
+            </div>
+        </div>
+
+        <div id="content">
+            
+                <h1>ProtonVPN no Qubes OS</h1>
+            
+
+            <div class="info">
+    Postado em 10/05/2026
+    
+</div>
+
+<p>Depois de finalizada a instalação do Qubes OS em uma máquina, ele não parecia fornecer um qube de rede com interfaces acessíveis para utilizar uma VPN de minha escolha, mas isso não pareceu implicar que a configuração de uma por meio de protocolos como o WireGuard fosse complicada. Irei demonstrar neste artigo utilizando uma solução relativamente popular e acessível, o ProtonVPN.</p>
+<h2 id="preparando-o-template">Preparando o template</h2>
+<p>Dentro do template que será utilizado no qube responsável pelo ProtonVPN, é interessante instalarmos algumas dependências relacionadas ao WireGuard e NetworkManager. Usando o <code>fedora-42-xfce</code> como exemplo:</p>
+<pre class="shell"><code>$ sudo dnf install -y wireguard-tools nm-connection-editor</code></pre>
+<p>Terminado, podemos desligar o template.</p>
+<h2 id="criando-o-qube">Criando o qube</h2>
+<p>Pelo Qube Manager conseguimos criar o qube facilmente através da opção “New qube”. Uma vez aberto, basta dar um nome (ex: sys-protonvpn), cor, selecionar o template e a rede de origem desejada. Aqui é crucial manter selecionado a opção “Provides network access to other qubes” em “Advanced Options”.</p>
+<p>Depois de criado, também é importante que o serviço <code>network-manager</code> esteja adicionado, selecionando o qube e indo em <code>Settings &gt; Services</code>.</p>
+<p><img src="../images/qube.png" /></p>
+<h2 id="gerando-configuração-wireguard">Gerando configuração WireGuard</h2>
+<p>O ProtonVPN fornece em seu site a possibilidade de gerar uma configuração WireGuard pronta para uso. Hoje essa funcionalidade se encontra em <a href="https://account.protonvpn.com/downloads">account.protonvpn.com/downloads</a>.</p>
+<p>Inserimos um nome qualquer para o certificado, selecionamos GNU/Linux na plataforma e, opcionalmente, habilitamos alguns recursos para a VPN, como o bloqueio NetShield e VPN Accelerator. Por fim, basta escolher o servidor desejado e a configuração será gerada, a qual iremos querer exportar para um arquivo do tipo <code>conf</code>.</p>
+<p><img src="../images/protonvpn.png" /></p>
+<h2 id="preparando-o-qube">Preparando o qube</h2>
+<p>Dentro do terminal do qube criado anteriormente, precisaremos rodar alguns comandos:</p>
+<p>Importamos a configuração WireGuard:</p>
+<pre class="shell"><code>$ nmcli connection import type wireguard file &lt;nome&gt;.conf</code></pre>
+<p>Exemplo:</p>
+<pre class="shell"><code>$ nmcli connection import type wireguard file proton-br-01.conf</code></pre>
+<p>Subimos a VPN:</p>
+<pre class="shell"><code>$ nmcli connection up proton-br-01</code></pre>
+<p>Para garantir que a VPN suba automaticamente:</p>
+<pre class="shell"><code>$ nmcli connection modify proton-br-01 connection.autoconnect yes</code></pre>
+<p>Também convém garantir que a interface WireGuard tenha prioridade de rota:</p>
+<pre class="shell"><code>$ nmcli connection modify proton-br-01 ipv4.never-default no ipv6.never-default no</code></pre>
+<p>Por fim:</p>
+<pre class="shell"><code>$ sudo poweroff</code></pre>
+<p>Inicie o qube novamente e verifique:</p>
+<pre class="shell"><code>$ curl icanhazip.com</code></pre>
+<p>O IP retornado deve ser do ProtonVPN.</p>
+<h2 id="evitando-vazamentos">Evitando vazamentos</h2>
+<p>Com esse setup, se a VPN cair, ainda pode haver risco de tráfego sair pelo <code>eth0</code> do qube. Para reduzir isso, é interessante criar um script shell que defina regras que só permitam tráfego encaminhado pela interface WireGuard.</p>
+<p>Exemplo:</p>
+<pre class="shell"><code>sudo vim /rw/config/vpn-killswitch.sh</code></pre>
+<p>No conteúdo adicionamos:</p>
+<pre class="shell"><code>#!/bin/bash
+
+# Troque caso o nome da interface WireGuard seja outro.
+WG_IF=&quot;proton-br-01&quot;
+
+sudo nft delete table inet protonvpn 2&gt;/dev/null
+sudo nft add table inet protonvpn
+
+sudo nft 'add chain inet protonvpn forward { type filter hook forward priority 0; policy drop; }'
+sudo nft 'add chain inet protonvpn output { type filter hook output priority 0; policy accept; }'
+
+sudo nft add rule inet protonvpn forward ct state established,related accept
+sudo nft add rule inet protonvpn forward oifname &quot;$WG_IF&quot; accept
+sudo nft add rule inet protonvpn forward oifname &quot;eth0&quot; drop</code></pre>
+<p>Tornamos executável:</p>
+<pre class="shell"><code>$ sudo chmod +x /rw/config/vpn-killswitch.sh</code></pre>
+<p>Para rodar no boot do qube:</p>
+<pre class="shell"><code>$ sudo vim /rw/config/rc.local</code></pre>
+<p>E adicionamos:</p>
+<pre class="shell"><code>/rw/config/vpn-killswitch.sh</code></pre>
+<p>Permissão:</p>
+<pre class="shell"><code>$ sudo chmod +x /rw/config/rc.local</code></pre>
+<p>E agora desligue e ligue o qube.</p>
+<p>Para verificar se deu certo podemos derrubar a VPN:</p>
+<pre class="shell"><code>$ nmcli connection down proton-br-01</code></pre>
+<p>Em uma AppVM que use esse qube como rede de origem, o tráfego deve falhar em vez de sair sem VPN.</p>
+<h2 id="finalizando">Finalizando</h2>
+<p>Com o qube rodando e a VPN funcionando, agora é só utilizá-lo como rede de origem nos qubes que desejar. Bom hacking!</p>
+
+<div id="comments">
+    <script src="https://giscus.app/client.js" data-repo="1ukidev/1ukidev.github.io" data-repo-id="R_kgDOJf8WNg" data-category="Announcements" data-category-id="DIC_kwDOJf8WNs4Cornt" data-mapping="pathname" data-strict="1" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="transparent_dark" data-lang="pt" data-loading="lazy" crossorigin="anonymous" async>
+    </script>
+</div>
+
+        </div>
+        <div id="footer">
+            CC BY-NC 4.0
+            <br>
+            Site gerado com
+            <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+            e
+            <a href="https://www.haskell.org">Haskell</a>
+            <br>
+            <a href="https://github.com/1ukidev/1ukidev.github.io">Código-fonte</a>
+        </div>
+        <button id="back-to-top" type="button" aria-label="Subir ao topo">&uarr;</button>
+        <script type="text/javascript">
+            const backToTop = document.getElementById("back-to-top");
+            const updateBackToTop = () => {
+                backToTop.classList.toggle("is-visible", window.scrollY > 320);
+            };
+
+            backToTop.addEventListener("click", () => {
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            });
+            window.addEventListener("scroll", updateBackToTop, { passive: true });
+            updateBackToTop();
+        </script>
+    </body>
+</html>
