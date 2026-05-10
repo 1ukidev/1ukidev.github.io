@@ -35,5 +35,18 @@
             <br>
             <a href="https://github.com/1ukidev/1ukidev.github.io">Código-fonte</a>
         </div>
+        <button id="back-to-top" type="button" aria-label="Subir ao topo">&uarr;</button>
+        <script type="text/javascript">
+            const backToTop = document.getElementById("back-to-top");
+            const updateBackToTop = () => {
+                backToTop.classList.toggle("is-visible", window.scrollY > 320);
+            };
+
+            backToTop.addEventListener("click", () => {
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            });
+            window.addEventListener("scroll", updateBackToTop, { passive: true });
+            updateBackToTop();
+        </script>
     </body>
 </html>

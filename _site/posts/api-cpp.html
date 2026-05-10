@@ -591,6 +591,11 @@
 <p>Infelizmente, programar a API dessa forma vai ter como efeito colateral muito código boilerplate e pode ficar constantemente vulnerável a bugs e falhas de segurança, o que pode se tornar um grande risco para projetos grandes. É interessante que você faça as coisas desse jeito somente se você realmente souber o que está fazendo e precisa de desempenho ao máximo. E ainda assim, é provável que não seja a melhor escolha, já que frameworks como o ASP.NET Core fornecem um bom nível de produtividade com um nível de desempenho consideravelmente alto.</p>
 <p>Código-fonte: <a href="https://github.com/1ukidev/efe">https://github.com/1ukidev/efe</a></p>
 
+<div id="comments">
+    <script src="https://giscus.app/client.js" data-repo="1ukidev/1ukidev.github.io" data-repo-id="R_kgDOJf8WNg" data-category="Announcements" data-category-id="DIC_kwDOJf8WNs4Cornt" data-mapping="pathname" data-strict="1" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="transparent_dark" data-lang="pt" data-loading="lazy" crossorigin="anonymous" async>
+    </script>
+</div>
+
         </div>
         <div id="footer">
             Site gerado com
@@ -600,5 +605,18 @@
             <br>
             <a href="https://github.com/1ukidev/1ukidev.github.io">Código-fonte</a>
         </div>
+        <button id="back-to-top" type="button" aria-label="Subir ao topo">&uarr;</button>
+        <script type="text/javascript">
+            const backToTop = document.getElementById("back-to-top");
+            const updateBackToTop = () => {
+                backToTop.classList.toggle("is-visible", window.scrollY > 320);
+            };
+
+            backToTop.addEventListener("click", () => {
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            });
+            window.addEventListener("scroll", updateBackToTop, { passive: true });
+            updateBackToTop();
+        </script>
     </body>
 </html>
