@@ -60,7 +60,7 @@
 <pre class="shell"><code>$ curl icanhazip.com</code></pre>
 <p>O IP retornado deve ser do ProtonVPN.</p>
 <h2 id="evitando-vazamentos">Evitando vazamentos</h2>
-<p>Com esse setup, se a VPN cair, ainda pode haver risco de tráfego sair pelo <code>eth0</code> do qube. Para reduzir isso, é interessante criar um script shell que defina regras que só permitam tráfego encaminhado pela interface WireGuard.</p>
+<p>Com esse setup, se a VPN cair, ainda pode haver risco de tráfego sair pelo <code>eth0</code> do qube. Para reduzir isso, é aconselhável criar um script shell que defina regras que só permitam tráfego encaminhado pela interface WireGuard.</p>
 <p>Exemplo:</p>
 <pre class="shell"><code>sudo vim /rw/config/vpn-killswitch.sh</code></pre>
 <p>No conteúdo adicionamos:</p>
@@ -69,29 +69,29 @@
 # Troque caso o nome da interface WireGuard seja outro.
 WG_IF=&quot;proton-br-01&quot;
 
-sudo nft delete table inet protonvpn 2&gt;/dev/null
-sudo nft add table inet protonvpn
+nft delete table inet protonvpn 2&gt;/dev/null
+nft add table inet protonvpn
 
-sudo nft 'add chain inet protonvpn forward { type filter hook forward priority 0; policy drop; }'
-sudo nft 'add chain inet protonvpn output { type filter hook output priority 0; policy accept; }'
+nft 'add chain inet protonvpn forward { type filter hook forward priority 0; policy drop; }'
+nft 'add chain inet protonvpn output { type filter hook output priority 0; policy accept; }'
 
-sudo nft add rule inet protonvpn forward ct state established,related accept
-sudo nft add rule inet protonvpn forward oifname &quot;$WG_IF&quot; accept
-sudo nft add rule inet protonvpn forward oifname &quot;eth0&quot; drop</code></pre>
+nft add rule inet protonvpn forward ct state established,related accept
+nft add rule inet protonvpn forward oifname &quot;$WG_IF&quot; accept
+nft add rule inet protonvpn forward oifname &quot;eth0&quot; drop</code></pre>
 <p>Tornamos executável:</p>
 <pre class="shell"><code>$ sudo chmod +x /rw/config/vpn-killswitch.sh</code></pre>
 <p>Para rodar no boot do qube:</p>
-<pre class="shell"><code>$ sudo vim /rw/config/rc.local</code></pre>
+<pre class="shell"><code>$ sudo vim /rw/config/qubes-firewall-user-script</code></pre>
 <p>E adicionamos:</p>
 <pre class="shell"><code>/rw/config/vpn-killswitch.sh</code></pre>
 <p>Permissão:</p>
-<pre class="shell"><code>$ sudo chmod +x /rw/config/rc.local</code></pre>
+<pre class="shell"><code>$ sudo chmod +x /rw/config/qubes-firewall-user-script</code></pre>
 <p>E agora desligue e ligue o qube.</p>
 <p>Para verificar se deu certo podemos derrubar a VPN:</p>
 <pre class="shell"><code>$ nmcli connection down proton-br-01</code></pre>
-<p>Em uma AppVM que use esse qube como rede de origem, o tráfego deve falhar em vez de sair sem VPN.</p>
+<p>Em uma AppVM que use esse qube como uma NetVM, o tráfego deve falhar em vez de sair sem VPN.</p>
 <h2 id="finalizando">Finalizando</h2>
-<p>Com o qube rodando e a VPN funcionando, agora é só utilizá-lo como rede de origem nos qubes que desejar. Bom hacking!</p>
+<p>Com o qube rodando e a VPN funcionando, agora é só utilizá-lo como rede de origem nos qubes que desejar. Além do que foi dito, também é desejável configurar para iniciá-lo na inicialização do sistema e verificar se há possíveis vazamentos de DNS. Bom hacking!</p>
 
 <div id="comments">
     <script src="https://giscus.app/client.js" data-repo="1ukidev/1ukidev.github.io" data-repo-id="R_kgDOJf8WNg" data-category="Announcements" data-category-id="DIC_kwDOJf8WNs4Cornt" data-mapping="pathname" data-strict="1" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="transparent_dark" data-lang="pt" data-loading="lazy" crossorigin="anonymous" async>
