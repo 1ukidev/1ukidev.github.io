@@ -29,6 +29,17 @@
     
 </div>
 
+<div class="toc">
+<h2>Índice</h2>
+<ul>
+<li><a href="#preparando-o-template" id="toc-preparando-o-template">Preparando o template</a></li>
+<li><a href="#criando-o-qube" id="toc-criando-o-qube">Criando o qube</a></li>
+<li><a href="#gerando-configuração-wireguard" id="toc-gerando-configuração-wireguard">Gerando configuração WireGuard</a></li>
+<li><a href="#preparando-o-qube" id="toc-preparando-o-qube">Preparando o qube</a></li>
+<li><a href="#evitando-vazamentos" id="toc-evitando-vazamentos">Evitando vazamentos</a></li>
+<li><a href="#finalizando" id="toc-finalizando">Finalizando</a></li>
+</ul>
+</div>
 <p>Depois de finalizada a instalação do Qubes OS em uma máquina, ele não parecia fornecer um qube de rede com interfaces acessíveis para utilizar uma VPN de minha escolha, mas isso não pareceu implicar que a configuração de uma por meio de protocolos como o WireGuard fosse complicada. Irei demonstrar neste artigo utilizando uma solução relativamente popular e acessível, o ProtonVPN.</p>
 <h2 id="preparando-o-template">Preparando o template</h2>
 <p>Dentro do template que será utilizado no qube responsável pelo ProtonVPN, é interessante instalarmos algumas dependências relacionadas ao WireGuard e NetworkManager. Usando o <code>fedora-42-xfce</code> como exemplo:</p>

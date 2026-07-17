@@ -29,6 +29,16 @@
     
 </div>
 
+<div class="toc">
+<h2>Índice</h2>
+<ul>
+<li><a href="#drogon" id="toc-drogon">Drogon</a></li>
+<li><a href="#orm" id="toc-orm">ORM</a></li>
+<li><a href="#json" id="toc-json">JSON</a></li>
+<li><a href="#controllers" id="toc-controllers">Controllers</a></li>
+<li><a href="#considerações-finais" id="toc-considerações-finais">Considerações finais</a></li>
+</ul>
+</div>
 <p>Nesses últimos meses eu fiquei de tirar um pouco do meu tempo para focar em um tipo de projeto não tão comum, uma API em C++, tanto para aprender mais sobre a linguagem e seus recursos mais modernos, quanto para ver o quão bom o resultado final ficaria. Assim surgiu o <strong>efe</strong>. Desenvolver uma do zero utilizando bibliotecas de mais baixo nível seria terrivelmente demorado, e eu não queria reinventar a roda, mas criar uma API com base no que há de melhor no ecossistema atualmente. Esse artigo é principalmente para quem tem mais conhecimento em C++ e tem curiosidade sobre frameworks web na linguagem, além de não representar completamente o nicho.</p>
 <h2 id="drogon">Drogon</h2>
 <p>No mundo do C++, um framework tem chamado minha atenção e é dele que vou falar agora. Trata-se do <a href="https://github.com/drogonframework/drogon">Drogon</a>, um framework web construído com base no C++ moderno, e isso inclui funcionalidades que se beneficiam do C++17 e C++20. Abrindo o capô, temos o <a href="https://github.com/an-tao/trantor">TRANTOR</a>, uma biblioteca que fornece um <a href="https://pt.wikipedia.org/wiki/La%C3%A7o_de_eventos">loop de eventos</a> multithread, com I/O não-bloqueante e de alta performance, para E/S de rede (<a href="https://www.techempower.com/benchmarks/#section=data-r21">e sério, é bem rápido</a>).</p>

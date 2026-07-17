@@ -86,19 +86,17 @@ video {
     height: auto;
 }
 
-a {
+a,
+a:visited {
     color: #83a598;
     text-decoration: none;
     overflow-wrap: anywhere;
 }
 
-a:hover {
+a:hover,
+a:visited:hover {
     color: #fe8019;
     text-decoration: underline;
-}
-
-a:visited {
-    color: #b16286;
 }
 
 div#header {
@@ -207,6 +205,26 @@ div.info {
     color: #a89984;
     font-size: 14px;
     font-style: italic;
+}
+
+div.toc {
+    background-color: #32302f;
+    border-radius: 8px;
+    margin: 24px 0;
+    padding: 16px 20px;
+}
+
+div.toc h2 {
+    margin: 0 0 8px;
+}
+
+div.toc ul {
+    margin: 0;
+    padding-left: 24px;
+}
+
+div.toc li + li {
+    margin-top: 4px;
 }
 
 div#comments {

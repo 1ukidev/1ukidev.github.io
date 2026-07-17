@@ -1,7 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import Data.Time.Format (defaultTimeLocale)
+import Data.Text (Text)
 import Hakyll
+import qualified Text.DocTemplates as DocTemplates
+import Text.Pandoc.Options
+    ( WriterOptions (writerTableOfContents, writerTemplate)
+    )
 
 siteTitle :: String
 siteTitle = "λ θ β ζ"
@@ -16,8 +21,39 @@ postCtx =
     dateFieldWith defaultTimeLocale "date" "%e/%m/%Y" <>
     defaultContext
 
+loadTocTemplate :: IO (DocTemplates.Template Text)
+loadTocTemplate = do
+    result <- DocTemplates.compileTemplate "toc" templateSource
+    either fail pure result
+  where
+    templateSource =
+        "<div class=\"toc\">\n" <>
+        "<h2>Índice</h2>\n" <>
+        "$toc$\n" <>
+        "</div>\n" <>
+        "$body$"
+
+tocWriterOptions :: DocTemplates.Template Text -> WriterOptions
+tocWriterOptions tocTemplate =
+    defaultHakyllWriterOptions
+        { writerTableOfContents = True
+        , writerTemplate = Just tocTemplate
+        }
+
+postCompiler :: DocTemplates.Template Text -> Compiler (Item String)
+postCompiler tocTemplate = do
+    identifier <- getUnderlying
+    hasToc <- (== Just "true") <$> getMetadataField identifier "toc"
+    let writerOptions =
+            if hasToc
+                then tocWriterOptions tocTemplate
+                else defaultHakyllWriterOptions
+    pandocCompilerWith defaultHakyllReaderOptions writerOptions
+
 main :: IO ()
-main = hakyll $ do
+main = do
+  tocTemplate <- loadTocTemplate
+  hakyll $ do
     match "images/*" $ do
         route   idRoute
         compile copyFileCompiler
@@ -34,7 +70,7 @@ main = hakyll $ do
 
     match "posts/*" $ do
         route $ setExtension "html"
-        compile $ pandocCompiler
+        compile $ postCompiler tocTemplate
             >>= loadAndApplyTemplate "templates/post.html"    postCtx
             >>= loadAndApplyTemplate "templates/default.html" (siteCtx <> postCtx)
             >>= relativizeUrls

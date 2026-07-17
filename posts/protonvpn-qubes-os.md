@@ -2,6 +2,7 @@
 date: "2026-05-10"
 draft: false
 title: "ProtonVPN no Qubes OS"
+toc: true
 ---
 
 Depois de finalizada a instalação do Qubes OS em uma máquina, ele não parecia fornecer um qube de rede com interfaces acessíveis para utilizar uma VPN de minha escolha, mas isso não pareceu implicar que a configuração de uma por meio de protocolos como o WireGuard fosse complicada. Irei demonstrar neste artigo utilizando uma solução relativamente popular e acessível, o ProtonVPN.
