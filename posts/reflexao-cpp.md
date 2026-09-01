@@ -2,6 +2,7 @@
 date: "2026-07-17"
 draft: false
 title: "Reflexão no C++26"
+tags: ["c++", "reflexão"]
 toc: true
 ---
 

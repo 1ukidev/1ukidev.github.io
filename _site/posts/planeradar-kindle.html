@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="pt-BR" lang="pt-BR">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>λ θ β ζ - Um radar de aviões no Kindle</title>
+        <link rel="stylesheet" type="text/css" href="../css/default.css" />
+        <link rel="icon" type="image/png" href="../images/favicon.png" />
+    </head>
+    <body>
+        <div id="header">
+            <div id="logo">
+                <a href="../">λ θ β ζ</a>
+            </div>
+            <div id="navigation">
+                <a href="../contact.html">Contato</a>
+                <a href="../archive.html">Arquivo</a>
+            </div>
+        </div>
+
+        <div id="content">
+            
+                <h1>Um radar de aviões no Kindle</h1>
+            
+
+            <div class="info">
+    Postado em 01/09/2026
+    
+</div>
+
+<p>Seguindo a tendência do <code>r/esp32</code>, criei o <a href="https://github.com/1ukidev/koreader-planeradar">Plane Radar</a>, um plugin em Lua que transforma o Kindle com KOReader em um pequeno radar de aviões.</p>
+<p><img src="../images/planeradar.png" /></p>
+<p>O plugin consulta os dados públicos do <a href="https://adsb.fi/">adsb.fi</a> e mostra as aeronaves próximas em um radar monocromático. Quando as informações estão disponíveis, também aparecem o indicativo do voo, o modelo do avião, a altitude e a direção em que ele está seguindo.</p>
+<p>O código e as instruções de instalação estão disponíveis no <a href="https://github.com/1ukidev/koreader-planeradar">GitHub</a>. Os dados do adsb.fi são destinados a uso pessoal e não comercial.</p>
+
+<div id="comments">
+    <script src="https://giscus.app/client.js" data-repo="1ukidev/1ukidev.github.io" data-repo-id="R_kgDOJf8WNg" data-category="Announcements" data-category-id="DIC_kwDOJf8WNs4Cornt" data-mapping="pathname" data-strict="1" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="transparent_dark" data-lang="pt" data-loading="lazy" crossorigin="anonymous" async>
+    </script>
+</div>
+
+        </div>
+        <div id="footer">
+            CC BY-NC 4.0
+            <br>
+            Site gerado com
+            <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+            e
+            <a href="https://www.haskell.org">Haskell</a>
+            <br>
+            <a href="https://github.com/1ukidev/1ukidev.github.io">Código-fonte</a>
+        </div>
+        <button id="back-to-top" type="button" aria-label="Subir ao topo">&uarr;</button>
+        <script type="text/javascript">
+            const backToTop = document.getElementById("back-to-top");
+            const updateBackToTop = () => {
+                backToTop.classList.toggle("is-visible", window.scrollY > 320);
+            };
+
+            backToTop.addEventListener("click", () => {
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            });
+            window.addEventListener("scroll", updateBackToTop, { passive: true });
+            updateBackToTop();
+        </script>
+    </body>
+</html>

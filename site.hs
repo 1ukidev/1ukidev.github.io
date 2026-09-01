@@ -18,7 +18,7 @@ siteCtx =
 
 postCtx :: Context String
 postCtx =
-    dateFieldWith defaultTimeLocale "date" "%e/%m/%Y" <>
+    dateFieldWith defaultTimeLocale "date" "%d/%m/%Y" <>
     defaultContext
 
 loadTocTemplate :: IO (DocTemplates.Template Text)
